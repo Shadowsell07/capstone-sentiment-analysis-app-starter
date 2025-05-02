@@ -6,6 +6,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import plotly
 import plotly.graph_objs as go
 import json
+import os
 
 app = Flask(__name__)
 analyzer = SentimentIntensityAnalyzer()
@@ -71,4 +72,5 @@ def index():
     return render_template('form.html', sentiment=sentiment, vader_chart=vader_chart)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
