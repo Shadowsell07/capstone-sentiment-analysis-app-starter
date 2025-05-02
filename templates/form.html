@@ -6,15 +6,20 @@
 <body>
     <h1>Sentiment Analysis</h1>
     <form method="POST">
-        <textarea name="user_text" rows="5" cols="40" placeholder="Enter your text here..."></textarea><br>
-        <input type="submit" value="Analyze Text">
+        <textarea name="user_text" rows="5" cols="50" placeholder="Enter your text here"></textarea>
+        <br>
+        <input type="submit" value="Analyze">
     </form>
 
     {% if sentiment %}
+        <h3>VADER Results:</h3>
         <p>Positive: {{ sentiment['pos'] * 100 }}%</p>
         <p>Negative: {{ sentiment['neg'] * 100 }}%</p>
         <p>Neutral: {{ sentiment['neu'] * 100 }}%</p>
         <p>Compound: {{ sentiment['compound'] }}</p>
+        
+        <h3>Custom Model Result:</h3>
+        <p>Positive Score: {{ sentiment['custom model positive'] }}</p>
     {% endif %}
 </body>
 </html>
