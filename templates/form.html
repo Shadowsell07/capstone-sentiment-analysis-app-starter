@@ -1,26 +1,56 @@
+/form.html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Sentiment Analysis</h1>
-    <form method="POST">
-        <textarea name="user_text" rows="5" cols="50" placeholder="Enter your text here"></textarea>
-        <br>
-        <input type="submit" value="Analyze">
-    </form>
-
-    {% if sentiment %}
-        <h3>VADER Results:</h3>
-        <p>Positive: {{ sentiment['pos'] * 100 }}%</p>
-        <p>Negative: {{ sentiment['neg'] * 100 }}%</p>
-        <p>Neutral: {{ sentiment['neu'] * 100 }}%</p>
-        <p>Compound: {{ sentiment['compound'] }}</p>
+    <div class="container">
+        <h1>Sentiment Analysis Tool</h1>
         
-        <h3>Custom Model Result:</h3>
-        <p>Positive Score: {{ sentiment['custom model positive'] }}</p>
-    {% endif %}
+        <form class="analysis-form" method="POST">
+            <textarea 
+                name="user_text" 
+                rows="5" 
+                placeholder="Enter your text here for sentiment analysis..."
+                required></textarea>
+            <button type="submit" class="submit-btn">Analyze Sentiment</button>
+        </form>
+
+        {% if sentiment %}
+        <div class="results">
+            <div class="result-card">
+                <h2>VADER Analysis</h2>
+                <div class="sentiment-score">
+                    <span class="score-label">Positive</span>
+                    <span class="score-value positive">{{ "%.1f"|format(sentiment['pos'] * 100) }}%</span>
+                </div>
+                <div class="sentiment-score">
+                    <span class="score-label">Negative</span>
+                    <span class="score-value negative">{{ "%.1f"|format(sentiment['neg'] * 100) }}%</span>
+                </div>
+                <div class="sentiment-score">
+                    <span class="score-label">Neutral</span>
+                    <span class="score-value neutral">{{ "%.1f"|format(sentiment['neu'] * 100) }}%</span>
+                </div>
+                <div class="sentiment-score">
+                    <span class="score-label">Compound</span>
+                    <span class="score-value compound">{{ "%.2f"|format(sentiment['compound']) }}</span>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h2>Custom Model Analysis</h2>
+                <div class="sentiment-score">
+                    <span class="score-label">Positive Score</span>
+                    <span class="score-value positive">{{ "%.2f"|format(sentiment['custom model positive']) }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>
-
