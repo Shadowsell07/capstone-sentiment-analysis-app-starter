@@ -1,4 +1,3 @@
-/form.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentiment Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -24,6 +24,7 @@
         <div class="results">
             <div class="result-card">
                 <h2>VADER Analysis</h2>
+                <div id="vader-chart"></div>
                 <div class="sentiment-score">
                     <span class="score-label">Positive</span>
                     <span class="score-value positive">{{ "%.1f"|format(sentiment['pos'] * 100) }}%</span>
@@ -50,6 +51,11 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            var graphs = {{ vader_chart | safe }};
+            Plotly.newPlot('vader-chart', graphs.data, graphs.layout);
+        </script>
         {% endif %}
     </div>
 </body>
