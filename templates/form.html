@@ -1,80 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Analysis</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Sentiment Analysis Tool</h1>
-        
-        <!-- Sentiment Analysis Form -->
-        <form class="analysis-form" method="POST" id="analysis-form">
-            <textarea 
-                name="user_text" 
-                rows="5" 
-                placeholder="Enter your text here for sentiment analysis..."
-                required
-                maxlength="2000"></textarea> <!-- Limiting input text length -->
-            <button type="submit" class="submit-btn" id="submit-btn">Analyze Sentiment</button>
-        </form>
+import pickle
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import sequence
+from flask import Flask, render_template, request
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import plotly
+import plotly.graph_objs as go
+import json
+import os
 
-        <!-- Loading Indicator -->
-        <div id="loading-indicator" style="display:none;">Processing...</div>
+app = Flask(__name__)
+analyzer = SentimentIntensityAnalyzer()
 
-        {% if sentiment %}
-        <div class="results">
-            <div class="result-card">
-                <h2>VADER Analysis</h2>
-                <div id="vader-chart"></div>
-                <div class="sentiment-score">
-                    <span class="score-label">Positive</span>
-                    <span class="score-value positive">{{ "%.1f"|format(sentiment['pos'] * 100) }}%</span>
-                </div>
-                <div class="sentiment-score">
-                    <span class="score-label">Negative</span>
-                    <span class="score-value negative">{{ "%.1f"|format(sentiment['neg'] * 100) }}%</span>
-                </div>
-                <div class="sentiment-score">
-                    <span class="score-label">Neutral</span>
-                    <span class="score-value neutral">{{ "%.1f"|format(sentiment['neu'] * 100) }}%</span>
-                </div>
-                <div class="sentiment-score">
-                    <span class="score-label">Compound</span>
-                    <span class="score-value compound">{{ "%.2f"|format(sentiment['compound']) }}</span>
-                </div>
-            </div>
+# Initialize global variables
+model = None
+tokenizer = None
 
-            <div class="result-card">
-                <h2>Custom Model Analysis</h2>
-                <div class="sentiment-score">
-                    <span class="score-label">Positive Score</span>
-                    <span class="score-value positive">{{ "%.2f"|format(sentiment['custom model positive']) }}</span>
-                </div>
-            </div>
-        </div>
+# Define functions to load model and tokenizer
+def load_keras_model():
+    global model
+    model = load_model('models/uci_sentimentanalysis.h5')
 
-        <!-- Plotly Chart Rendering -->
-        <script>
-            var graphs = {{ vader_chart | safe }};
-            Plotly.newPlot('vader-chart', graphs.data, graphs.layout);
-        </script>
-        {% endif %}
-    </div>
+def load_tokenizer():
+    global tokenizer
+    with open('models/tokenizer.pickle', 'rb') as handle:
+        tokenizer = pickle.load(handle)
 
-    <!-- JavaScript for Form Interaction -->
-    <script>
-        const form = document.getElementById("analysis-form");
-        const submitBtn = document.getElementById("submit-btn");
-        const loadingIndicator = document.getElementById("loading-indicator");
+# Define sentiment analysis function
+def sentiment_analysis(input):
+    user_sequences = tokenizer.texts_to_sequences([input])
+    user_sequences_matrix = sequence.pad_sequences(user_sequences, maxlen=1225)
+    prediction = model.predict(user_sequences_matrix)
+    return round(float(prediction[0][0]), 2)
 
-        form.addEventListener("submit", function(event) {
-            submitBtn.disabled = true;  // Disable button to prevent double submission
-            loadingIndicator.style.display = "block";  // Show loading indicator
-        });
-    </script>
-</body>
-</html>
+# Lazy loading the model and tokenizer to reduce memory usage at app startup
+@app.before_first_request
+def before_first_request():
+    load_keras_model()
+    load_tokenizer()
+
+# Define route
+@app.route("/", methods=["GET", "POST"])
+def index():
+    sentiment = None
+    vader_chart = None
+    if request.method == "POST":
+        text = request.form.get("user_text")
+
+        # If the input text is too long, truncate it to avoid memory issues
+        max_input_length = 1000  # Adjust based on your model's capabilities
+        text = text[:max_input_length] 
+
+        sentiment = analyzer.polarity_scores(text)
+        sentiment["custom model positive"] = sentiment_analysis(text)
+
+        # Create VADER sentiment chart
+        labels = ['Positive', 'Negative', 'Neutral']
+        values = [sentiment['pos'], sentiment['neg'], sentiment['neu']]
+        colors = ['#27ae60', '#c0392b', '#7f8c8d']
+
+        fig = go.Figure(data=[go.Bar(
+            x=labels,
+            y=values,
+            marker_color=colors
+        )])
+
+        fig.update_layout(
+            title='VADER Sentiment Scores',
+            yaxis_title='Score',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            yaxis=dict(
+                gridcolor='rgba(0,0,0,0.1)',
+                range=[0, 1]
+            )
+        )
+
+        vader_chart = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('form.html', sentiment=sentiment, vader_chart=vader_chart)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
