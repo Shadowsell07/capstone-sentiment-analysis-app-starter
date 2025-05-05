@@ -1,14 +1,12 @@
-flask==2.0.1
-werkzeug==2.0.3
-gunicorn==21.2.0
+flask>=2.0
+werkzeug>=2.0
+gunicorn>=21.2
 vaderSentiment==3.3.2
-tensorflow==2.16.1
-numpy==1.24.3
-plotly==5.18.0
-scikit-learn==1.2.2
-h5py==3.10.0
-Flask-SQLAlchemy==2.5.1
-sqlalchemy==1.4.20
-psycopg2-binary==2.9.1
-pytest==7.4.2
-protobuf==4.23.4
+tensorflow-cpu==2.16.1  # Optional: Switch to the lighter CPU version if GPU is not used
+numpy>=1.24
+plotly>=5.18
+Flask-SQLAlchemy>=2.5
+psycopg2-binary>=2.9  # Only keep if plan to use PostgreSQL
+h5py>=3.10
+pytest>=7.4  
+
