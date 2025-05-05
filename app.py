@@ -1,6 +1,6 @@
 import pickle
 from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.utils import pad_sequences
 from flask import Flask, render_template, request
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import plotly
@@ -28,7 +28,7 @@ def load_tokenizer():
 # Define sentiment analysis function
 def sentiment_analysis(input):
     user_sequences = tokenizer.texts_to_sequences([input])
-    user_sequences_matrix = sequence.pad_sequences(user_sequences, maxlen=1225)
+    user_sequences_matrix = pad_sequences(user_sequences, maxlen=1225)
     prediction = model.predict(user_sequences_matrix)
     return round(float(prediction[0][0]), 2)
 
