@@ -11,14 +11,19 @@
     <div class="container">
         <h1>Sentiment Analysis Tool</h1>
         
-        <form class="analysis-form" method="POST">
+        <!-- Sentiment Analysis Form -->
+        <form class="analysis-form" method="POST" id="analysis-form">
             <textarea 
                 name="user_text" 
                 rows="5" 
                 placeholder="Enter your text here for sentiment analysis..."
-                required></textarea>
-            <button type="submit" class="submit-btn">Analyze Sentiment</button>
+                required
+                maxlength="2000"></textarea> <!-- Limiting input text length -->
+            <button type="submit" class="submit-btn" id="submit-btn">Analyze Sentiment</button>
         </form>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" style="display:none;">Processing...</div>
 
         {% if sentiment %}
         <div class="results">
@@ -52,11 +57,24 @@
             </div>
         </div>
 
+        <!-- Plotly Chart Rendering -->
         <script>
             var graphs = {{ vader_chart | safe }};
             Plotly.newPlot('vader-chart', graphs.data, graphs.layout);
         </script>
         {% endif %}
     </div>
+
+    <!-- JavaScript for Form Interaction -->
+    <script>
+        const form = document.getElementById("analysis-form");
+        const submitBtn = document.getElementById("submit-btn");
+        const loadingIndicator = document.getElementById("loading-indicator");
+
+        form.addEventListener("submit", function(event) {
+            submitBtn.disabled = true;  // Disable button to prevent double submission
+            loadingIndicator.style.display = "block";  // Show loading indicator
+        });
+    </script>
 </body>
 </html>
