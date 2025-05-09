@@ -6,3 +6,4 @@ textblob
 plotly
 scikit-learn
 pandas
+gunicorn==20.1.0
