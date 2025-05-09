@@ -1,6 +1,14 @@
 from flask import Flask, render_template, request
 from textblob import TextBlob
 import plotly.graph_objs as go
+import pandas as pd
+import pickle
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Embedding, LSTM
+from tensorflow.keras.callbacks import EarlyStopping
 
 app = Flask(__name__)
 
