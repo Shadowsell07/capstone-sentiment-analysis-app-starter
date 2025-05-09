@@ -3,60 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Analysis</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>Sentiment Analysis App</title>
+    <!-- Link to Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .main-container {
+            margin-top: 50px;
+        }
+        .card-body {
+            text-align: center;
+        }
+        .card {
+            border-radius: 15px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Sentiment Analysis Tool</h1>
-        
-        <form class="analysis-form" method="POST">
-            <textarea 
-                name="user_text" 
-                rows="5" 
-                placeholder="Enter your text here for sentiment analysis..."
-                required></textarea>
-            <button type="submit" class="submit-btn">Analyze Sentiment</button>
-        </form>
-
-        {% if sentiment %}
-        <div class="results">
-            <div class="result-card">
-                <h2>VADER Analysis</h2>
-                <div id="vader-chart"></div>
-                <div class="sentiment-score">
-                    <span class="score-label">Positive</span>
-                    <span class="score-value positive">{{ "%.1f"|format(sentiment['pos'] * 100) }}%</span>
-                </div>
-                <div class="sentiment-score">
-                    <span class="score-label">Negative</span>
-                    <span class="score-value negative">{{ "%.1f"|format(sentiment['neg'] * 100) }}%</span>
-                </div>
-                <div class="sentiment-score">
-                    <span class="score-label">Neutral</span>
-                    <span class="score-value neutral">{{ "%.1f"|format(sentiment['neu'] * 100) }}%</span>
-                </div>
-                <div class="sentiment-score">
-                    <span class="score-label">Compound</span>
-                    <span class="score-value compound">{{ "%.2f"|format(sentiment['compound']) }}</span>
-                </div>
-            </div>
-
-            <div class="result-card">
-                <h2>Custom Model Analysis</h2>
-                <div class="sentiment-score">
-                    <span class="score-label">Positive Score</span>
-                    <span class="score-value positive">{{ "%.2f"|format(sentiment['custom model positive']) }}</span>
+    <div class="container main-container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h4>Sentiment Analysis</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>Enter Text for Sentiment Analysis</h5>
+                        <form action="/" method="post">
+                            <div class="mb-3">
+                                <textarea class="form-control" name="text_input" rows="5" placeholder="Enter your text here..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Analyze</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <script>
-            var graphs = {{ vader_chart | safe }};
-            Plotly.newPlot('vader-chart', graphs.data, graphs.layout);
-        </script>
+        {% if result %}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-success text-white">
+                        <h5>Analysis Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Sentiment: <strong>{{ result }}</strong></h6>
+                        <div id="chart" class="mt-4"></div>  <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endif %}
     </div>
+
+    <!-- Link to Plotly and Bootstrap JS -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript for rendering the chart -->
+    <script>
+        {% if result %}
+        var sentimentData = {{ sentiment_data | tojson }};
+        var layout = {
+            title: 'Sentiment Analysis Results',
+            xaxis: { title: 'Sentiment' },
+            yaxis: { title: 'Value' },
+            showlegend: false
+        };
+        Plotly.newPlot('chart', [{
+            x: sentimentData.labels,
+            y: sentimentData.values,
+            type: 'bar',
+            marker: { color: ['#ff4b5c', '#f6c90e', '#4caf50'] }
+        }], layout);
+        {% endif %}
+    </script>
 </body>
 </html>
